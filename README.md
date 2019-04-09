@@ -3,7 +3,6 @@
 ## Software requirements
 
  - Install Julia 0.5.1  https://julialang.org/
- - Required packages: PyPlot, DataFrames, Distributions
 
 ## How to simulate?
 
