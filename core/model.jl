@@ -1,3 +1,9 @@
+if VERSION >= v"1.0-"
+    using LinearAlgebra
+    using Dates
+    using DelimitedFiles
+    using InteractiveUtils
+end
 
 function get_index(array::Array, subarray::Array)
     index = Int[]
@@ -11,7 +17,7 @@ function get_index(array::Array, subarray::Array)
     return index::Array{Int, 1}
 end
 
-type Interval
+mutable struct Interval
     min::Float64
     max::Float64
     norm::Float64
@@ -19,13 +25,17 @@ type Interval
         if max-min<0
             error("invalid LabeledInterval bounds")
         end
-        new(min, max, max- min)
+        new(min,
+            max,
+            max- min)
     end
     function Interval(a::Array{Float64,1})
         if a[2]-a[1]<0
             error("invalid LabeledInterval bounds")
         end
-        new(a[1], a[2], a[2]- a[1])
+        new(a[1],
+            a[2],
+            a[2]- a[1])
     end
 end
 
@@ -35,7 +45,7 @@ const Domain = Interval
 
 const DomainList = IntervalList
 
-type LabeledInterval
+mutable struct LabeledInterval
     label::AbstractString
     min::Float64
     max::Float64
@@ -44,7 +54,10 @@ type LabeledInterval
         if max-min<0
             error("invalid LabeledInterval bounds")
         end
-        new(label, min, max, max-min)
+        new(label,
+            min,
+            max,
+            max- min)
     end
 end
 
@@ -74,7 +87,7 @@ const Time = LabeledInterval
 
 const Timeline = Array{Float64, 1}
 
-type Grid
+mutable struct Grid
     qmin::Float64
     qmax::Float64
     dq::Float64
@@ -105,11 +118,21 @@ type Grid
                                     i::Interval)
             return integrate([rho[j] for j in get_index(collect(q), collect(i.min:dq:i.max))])
         end
-        new(qmin, qmax, dq, q, integrate, integrate_class, integrate_interval, time.min, time.max, dt, t)
+        new(qmin,
+            qmax,
+            dq,
+            q,
+            integrate,
+            integrate_class,
+            integrate_interval,
+            time.min,
+            time.max,
+            dt,
+            t)
     end
 end
 
-type ECAgentTraits
+mutable struct ECAgentTraits
     name::AbstractString
     f_kernel::AbstractString
     kernel::Array{Float64, 2}
@@ -121,8 +144,8 @@ type ECAgentTraits
                            kernel_type::AbstractString,
                            activity::AbstractString,
                            g::Grid)
-        function_kernel = eval(parse(f_kernel))
-        activity_function = eval(parse(activity))
+        function_kernel = eval(Meta.parse(f_kernel))
+        activity_function = eval(Meta.parse(activity))
         if kernel_type == "regular" || kernel_type == "translation"
             kernel = zeros(length(g.q),length(g.q))
             for k=1:length(g.q)
@@ -133,23 +156,28 @@ type ECAgentTraits
             for k=1:length(g.q)
                 for j = 1:length(g.q)
                     if j==1
-                        kernel[k,j] = 0.5 * Base.invokelatest(function_kernel, g.q[k], g.q[j], g)
+                        kernel[k,j] = 0.5* Base.invokelatest(function_kernel, g.q[k], g.q[j], g)
                     elseif j == length(g.q)
-                        kernel[k,j] = 0.5 * Base.invokelatest(function_kernel, g.q[k], g.q[j-1], g)
+                        kernel[k,j] = 0.5* Base.invokelatest(function_kernel, g.q[k], g.q[j-1], g)
                     else
-                        kernel[k,j] = 0.5 * (Base.invokelatest(function_kernel, g.q[k], g.q[j], g) +
+                        kernel[k,j] = 0.5* (Base.invokelatest(function_kernel, g.q[k], g.q[j], g) +
                                              Base.invokelatest(function_kernel, g.q[k], g.q[j-1], g))
                     end
                 end
             end
         end
-        new(name, f_kernel, kernel, kernel_type, activity, activity_function)
+        new(name,
+            f_kernel,
+            kernel,
+            kernel_type,
+            activity,
+            activity_function)
     end
 end
 
 const ECAgentTraitsList = Array{ECAgentTraits, 1}
 
-type MicrobeTraits
+mutable struct MicrobeTraits
     name::AbstractString
     signature_function::AbstractString
     signature::Array{Float64, 1}
@@ -165,13 +193,21 @@ type MicrobeTraits
                            efficiency::AbstractString,
                            mortality::AbstractString,
                            g::Grid)
-        new(name, signature_function, [Base.invokelatest(eval(parse(signature_function)), g.q[i]) for i=1:length(g.q)], assimilation, eval(parse(assimilation)), efficiency, eval(parse(efficiency)), mortality, eval(parse(mortality)))
+        new(name,
+            signature_function,
+            [Base.invokelatest(eval(Meta.parse(signature_function)), g.q[i]) for i=1:length(g.q)],
+            assimilation,
+            eval(Meta.parse(assimilation)),
+            efficiency,
+            eval(Meta.parse(efficiency)),
+            mortality,
+            eval(Meta.parse(mortality)))
     end
 end
 
 const MicrobeTraitsList = Array{MicrobeTraits, 1}
 
-type Parameters
+mutable struct Parameters
     biochemical_classes::BiochemicalClasses
     time::Time
     grid::Grid
@@ -179,7 +215,7 @@ type Parameters
     ecagent_traits::ECAgentTraitsList
 end
 
-type MicrobeState
+mutable struct MicrobeState
     uptake_flux::Float64
     assimilation_flux::Float64
     respiration_flux::Float64
@@ -191,14 +227,14 @@ end
 
 const MicrobeStateList = Array{MicrobeState, 1}
 
-type ECAgentState
+mutable struct ECAgentState
     action_rate::Float64
     transformation_flux::Float64
 end
 
 const ECAgentStateList = Array{ECAgentState, 1}
 
-type State
+mutable struct State
     substrate_dist::Array{Float64, 1}
     substrate::Float64
     substrate_classes::Array{Float64, 1}
@@ -220,10 +256,31 @@ type State
             substrate_classes[i] = p.grid.integrate_class(substrate_dist, p.biochemical_classes[i])
             substrate_classes_proportion[i] = substrate_classes[i]/ substrate
         end
-        new(substrate_dist, substrate, substrate_classes, substrate_classes_proportion, respiration_flux, respiration, microbes, ecagents)
+        new(substrate_dist,
+            substrate,
+            substrate_classes,
+            substrate_classes_proportion,
+            respiration_flux,
+            respiration,
+            microbes,
+            ecagents)
     end
-    function State(substrate_dist::Array{Float64, 1}, substrate::Float64, substrate_classes::Array{Float64, 1}, substrate_classes_proportion::Array{Float64, 1}, respiration_flux::Float64, respiration::Float64, microbes::MicrobeStateList, ecagents::ECAgentStateList)
-       new(substrate_dist, substrate, substrate_classes, substrate_classes_proportion, respiration_flux, respiration, microbes, ecagents)
+    function State(substrate_dist::Array{Float64, 1},
+                   substrate::Float64,
+                   substrate_classes::Array{Float64, 1},
+                   substrate_classes_proportion::Array{Float64, 1},
+                   respiration_flux::Float64,
+                   respiration::Float64,
+                   microbes::MicrobeStateList,
+                   ecagents::ECAgentStateList)
+        new(substrate_dist,
+            substrate,
+            substrate_classes,
+            substrate_classes_proportion,
+            respiration_flux,
+            respiration,
+            microbes,
+            ecagents)
     end
     function State()
        new()
@@ -232,7 +289,7 @@ end
 
 const StateList = Array{State, 1}
 
-type Context
+mutable struct Context
     input_dist::Array{Float64, 2}
 end
 
@@ -250,20 +307,28 @@ function nextstate_explicit(xn::StateList,
 
     mic_ns_list = MicrobeState[]
     respiration_flux_t = 0.
-    dsub_mic = zeros(sub)
+    dsub_mic = fill!(copy(sub), 0)
     for i = 1:nm
         efficiency = [p.microbes_traits[i].efficiency_function(xn, u, p.grid.q[j], t) for j=1:la]
         uptake = [p.microbes_traits[i].assimilation_function(xn, u, p.grid.q[j], t) for j=1:la].* sub
         uptake_flux = p.grid.integrate(uptake)
         assimilation_flux = p.grid.integrate(uptake.* efficiency)
-        respiration_flux = p.grid.integrate(uptake.* (1- efficiency))
-        mortality_flux = p.microbes_traits[i].mortality_function(xn, u, t)* xn[end].microbes[i].living_carbon_mass
+        respiration_flux = p.grid.integrate(uptake.* (1. .- efficiency))
+        mortality_flux = p.microbes_traits[i].mortality_function(xn, u, t)*
+                             xn[end].microbes[i].living_carbon_mass
 
-        living_carbon_mass = xn[end].microbes[i].living_carbon_mass+ p.grid.dt* (assimilation_flux- mortality_flux)
+        living_carbon_mass = xn[end].microbes[i].living_carbon_mass+
+                                 p.grid.dt* (assimilation_flux- mortality_flux)
         dead_carbon_mass = xn[end].microbes[i].dead_carbon_mass+ p.grid.dt* mortality_flux
         respiration = xn[end].microbes[i].respiration+ p.grid.dt* respiration_flux
 
-        mic_ns = MicrobeState(uptake_flux, assimilation_flux, respiration_flux, mortality_flux, respiration, living_carbon_mass, dead_carbon_mass)
+        mic_ns = MicrobeState(uptake_flux,
+                              assimilation_flux,
+                              respiration_flux,
+                              mortality_flux,
+                              respiration,
+                              living_carbon_mass,
+                              dead_carbon_mass)
         push!(mic_ns_list, mic_ns)
         respiration_flux_t += respiration_flux
         dsub_mic += p.grid.dt* (mortality_flux* p.microbes_traits[i].signature- uptake)
@@ -277,7 +342,7 @@ function nextstate_explicit(xn::StateList,
         action_rate = [p.ecagent_traits[i].activity_function(xn, u, p.grid.q[j], t) for j=1:la]
         action = action_rate .* sub
         kernel = p.ecagent_traits[i].kernel
-        mat_enz -= p.grid.dt * diagm(action_rate)
+        mat_enz -= p.grid.dt * Diagonal(action_rate)
         if p.ecagent_traits[i].kernel_type == "regular"
             kernel = p.grid.dt * p.grid.dq * kernel
             for n = 1:la-1

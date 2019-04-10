@@ -21,7 +21,7 @@ function linear(min::Float64, max::Float64, rate::Float64, x::Float64)
 end
 
 function gaussian(i::Interval, x0::Float64, sigma::Float64, x::Float64) 
-    return indicatrice(i, x)/ sqrt(2.*pi)/sigma * exp(-1./2.*((x-x0)/sigma)^2)::Float64
+    return indicatrice(i, x)/ sqrt(2. *pi)/sigma * exp(-1. /2. *((x-x0)/sigma)^2)::Float64
 end
 
 #### uptakes
@@ -43,7 +43,8 @@ end
 
 function competition(xl::StateList, mic_ref::Int, mic::Int, lambda::Float64)
     lambda = 1.
-    c = 1.- 1./ (1.+ 9. * exp(-lambda * xl[end].microbes[mic].living_carbon_mass/ xl[end].microbes[mic_ref].living_carbon_mass))
+    c = 1. - 1. /
+        (1. + 9. * exp(-lambda * xl[end].microbes[mic].living_carbon_mass/ xl[end].microbes[mic_ref].living_carbon_mass))
     return c::Float64
 end
 
@@ -104,7 +105,7 @@ function kernel_q_increase_stabilized(min::Float64, max::Float64, q::Float64, qp
     if qp >= min && qp < c && q >= qp && q <= max
         out = (alpha+1)* (max-q)^alpha/ (max-qp)^(alpha+1)
     elseif qp >= c && qp <= max && q == qp
-        out = 1/dq
+        out = 1. /dq
     else
         out = 0.
     end

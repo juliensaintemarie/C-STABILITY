@@ -64,5 +64,4 @@ u = Context(input)
 
 # simulation 
 @time xl = simulate_explicit(x0, p, u, false) 
-whos(r"xl") 
 save(xl, u, p; path = "results", folder="example")

@@ -13,7 +13,7 @@ function get_timeline(xl::StateList, l::AbstractString)
         s = Symbol(l[mark+3:end])
         tl = Float64[]
         for i = 1:length(xl)
-            push!(tl, getfield(xl[i].microbes[eval(parse(l[10:mark]))], s))
+            push!(tl, getfield(xl[i].microbes[eval(Meta.parse(l[10:mark]))], s))
         end
         return tl::Array{Float64, 1}
     elseif l[1:8] == "ecagents"
@@ -29,7 +29,7 @@ function get_timeline(xl::StateList, l::AbstractString)
         s = Symbol(l[mark+3:end])
         tl = Float64[]
         for i = 1:length(xl)
-            push!(tl, getfield(xl[i].ecagents[eval(parse(l[10:mark]))], s))
+            push!(tl, getfield(xl[i].ecagents[eval(Meta.parse(l[10:mark]))], s))
         end
         return tl::Array{Float64, 1}
     else
@@ -45,7 +45,7 @@ function get_timeline(xl::StateList, l::AbstractString)
             for i = 2:length(xl)
                 tl = hcat(tl, getfield(xl[i], s))
             end
-            return tl'::Array{Float64, 2}
+            return tl'::Adjoint{Float64,Array{Float64,2}}
         end
     end
 end
@@ -91,42 +91,42 @@ function save(xl::StateList, u::Context, p::Parameters; path="/", folder="")
     dir = path* folder
 
     # parameters
-    writecsv("$dir/parameter_time.csv", ["unit" "min" "max"])
+    writedlm("$dir/parameter_time.csv", ["unit" "min" "max"], ',')
     file = open("$dir/parameter_time.csv", "a")
-    writecsv(file, [t.label t.min t.max])
+    writedlm(file, [t.label t.min t.max], ',')
     close(file)
     
-    writecsv("$dir/parameter_grid.csv", ["variable" "grid"])
+    writedlm("$dir/parameter_grid.csv", ["variable" "grid"], ',')
     file = open("$dir/parameter_grid.csv", "a")
-    writecsv(file, ["t" g.t'])
-    writecsv(file, ["q" g.q'])
+    writedlm(file, ["t" g.t'], ',')
+    writedlm(file, ["q" g.q'], ',')
     close(file)
     
-    writecsv("$dir/parameter_biochemical_classes.csv", ["class" "min" "max"])
+    writedlm("$dir/parameter_biochemical_classes.csv", ["class" "min" "max"], ',')
     file = open("$dir/parameter_biochemical_classes.csv", "a")
     for bc in p.biochemical_classes
-        writecsv(file, [bc.label bc.min bc.max])
+        writedlm(file, [bc.label bc.min bc.max], ',')
     end
     close(file)
     
-    writecsv("$dir/parameter_microbes.csv", ["microbe" "signature" "assimilation" "efficiency" "mortality"])
+    writedlm("$dir/parameter_microbes.csv", ["microbe" "signature" "assimilation" "efficiency" "mortality"], ',')
     file = open("$dir/parameter_microbes.csv", "a")
     for i=1:length(mtl)
-        writecsv(file, [mtl[i].name mtl[i].signature_function mtl[i].assimilation mtl[i].efficiency mtl[i].mortality])
+        writedlm(file, [mtl[i].name mtl[i].signature_function mtl[i].assimilation mtl[i].efficiency mtl[i].mortality], ',')
     end
     close(file)
     
-    writecsv("$dir/parameter_ecagents.csv", ["ecagent" "kernel" "kernel_type" "activity"])
+    writedlm("$dir/parameter_ecagents.csv", ["ecagent" "kernel" "kernel_type" "activity"], ',')
     file = open("$dir/parameter_ecagents.csv", "a")
     for i=1:length(ecl)
-        writecsv(file, [ecl[i].name ecl[i].f_kernel ecl[i].kernel_type ecl[i].activity])
+        writedlm(file, [ecl[i].name ecl[i].f_kernel ecl[i].kernel_type ecl[i].activity], ',')
     end
     close(file)
     
     # context
-    writecsv("$dir/context_input_dist.csv", ["t" "a"])
+    writedlm("$dir/context_input_dist.csv", ["t" "a"], ',')
     file = open("$dir/context_input_dist.csv", "a")
-    writecsv(file, u.input_dist)
+    writedlm(file, u.input_dist, ',')
     close(file)
     
     # state
@@ -147,10 +147,10 @@ function save(xl::StateList, u::Context, p::Parameters; path="/", folder="")
     for variable in variable_list
         data = get_timeline(xl, variable)
         # create header
-        writecsv("$dir/state_$variable.csv", ["time" variable])
+        writedlm("$dir/state_$variable.csv", ["time" variable], ',')
         # add data
         file = open("$dir/state_$variable.csv", "a")
-        writecsv(file, [g.t data])
+        writedlm(file, [g.t data], ',')
         close(file)
     end
 end

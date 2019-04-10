@@ -2,13 +2,14 @@
 
 ## Software requirements
 
- - Install Julia 0.6.4  https://julialang.org/
+ - Install Julia 1.0- or above  https://julialang.org/
+ - Install library LinearAlgebra, DelimitedFiles, Dates and InteractiveUtils
 
 ## How to simulate?
 
 ### Main principle of a simulation
 
-Model variables are stored for each simulation time in a Julia Type called State (noted x).
+Model variables are stored for each simulation time in a Julia Struct called State (noted x).
 
 The results of a simulation are store in a StateList (noted xl) collecting the states for all simulation times.
 
@@ -30,16 +31,16 @@ Several functions are defined in "core/helpers/functions.jl".
 
 
  
-### Structure of Types
+### Structure and Types
 
-The main Types used to perform a simulation are:
+The main structures used to perform a simulation are:
  - Parameters - p
  - Context - c
  - State - x
 
 Elementary Julia Types (Int, Float64, AbstractString, Bool, Function, ...) are not detailed here.
 
-| Category 		 | New Type   	  	        | Abr.	| Elements     	   	    	      	      	| Type					|
+| Category 		 | New Struct   	  	        | Abr.	| Elements     	   	    	      	      	| Type or Struct					|
 |------------------------|------------------------------|-------|-----------------------------------------------|---------------------------------------|
 | Basic types		 | Interval			| i	| min						| Float64				|
 |			 |				| -	| max						| Float64				|
