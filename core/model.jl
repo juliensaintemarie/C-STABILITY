@@ -29,11 +29,11 @@ type Interval
     end
 end
 
-typealias IntervalList Array{Interval, 1}
+const IntervalList = Array{Interval, 1}
 
-typealias Domain Interval
+const Domain = Interval
 
-typealias DomainList IntervalList
+const DomainList = IntervalList
 
 type LabeledInterval
     label::AbstractString
@@ -48,7 +48,7 @@ type LabeledInterval
     end
 end
 
-typealias LabeledIntervalList Array{LabeledInterval, 1}
+const LabeledIntervalList = Array{LabeledInterval, 1}
 
 function get_interval(li::LabeledInterval)
     return Interval(li.min, li.max)::Interval
@@ -66,13 +66,13 @@ function get_dictionnary(lil::LabeledIntervalList)
     return d
 end
 
-typealias BiochemicalClass LabeledInterval
+const BiochemicalClass = LabeledInterval
 
-typealias BiochemicalClasses LabeledIntervalList
+const BiochemicalClasses = LabeledIntervalList
 
-typealias Time LabeledInterval
+const Time = LabeledInterval
 
-typealias Timeline Array{Float64, 1}
+const Timeline = Array{Float64, 1}
 
 type Grid
     qmin::Float64
@@ -133,11 +133,12 @@ type ECAgentTraits
             for k=1:length(g.q)
                 for j = 1:length(g.q)
                     if j==1
-                        kernel[k,j] = 0.5 * function_kernel(g.q[k], g.q[j], g)
+                        kernel[k,j] = 0.5 * Base.invokelatest(function_kernel, g.q[k], g.q[j], g)
                     elseif j == length(g.q)
-                        kernel[k,j] = 0.5 * function_kernel(g.q[k], g.q[j-1], g)
+                        kernel[k,j] = 0.5 * Base.invokelatest(function_kernel, g.q[k], g.q[j-1], g)
                     else
-                        kernel[k,j] = 0.5 * (function_kernel(g.q[k], g.q[j], g) + function_kernel(g.q[k], g.q[j-1], g))
+                        kernel[k,j] = 0.5 * (Base.invokelatest(function_kernel, g.q[k], g.q[j], g) +
+                                             Base.invokelatest(function_kernel, g.q[k], g.q[j-1], g))
                     end
                 end
             end
@@ -146,7 +147,7 @@ type ECAgentTraits
     end
 end
 
-typealias ECAgentTraitsList Array{ECAgentTraits, 1}
+const ECAgentTraitsList = Array{ECAgentTraits, 1}
 
 type MicrobeTraits
     name::AbstractString
@@ -164,11 +165,11 @@ type MicrobeTraits
                            efficiency::AbstractString,
                            mortality::AbstractString,
                            g::Grid)
-        new(name, signature_function, [eval(parse(signature_function))(g.q[i]) for i=1:length(g.q)], assimilation, eval(parse(assimilation)), efficiency, eval(parse(efficiency)), mortality, eval(parse(mortality)))
+        new(name, signature_function, [Base.invokelatest(eval(parse(signature_function)), g.q[i]) for i=1:length(g.q)], assimilation, eval(parse(assimilation)), efficiency, eval(parse(efficiency)), mortality, eval(parse(mortality)))
     end
 end
 
-typealias MicrobeTraitsList Array{MicrobeTraits, 1}
+const MicrobeTraitsList = Array{MicrobeTraits, 1}
 
 type Parameters
     biochemical_classes::BiochemicalClasses
@@ -188,14 +189,14 @@ type MicrobeState
     dead_carbon_mass::Float64
 end
 
-typealias MicrobeStateList Array{MicrobeState, 1}
+const MicrobeStateList = Array{MicrobeState, 1}
 
 type ECAgentState
     action_rate::Float64
     transformation_flux::Float64
 end
 
-typealias ECAgentStateList Array{ECAgentState, 1}
+const ECAgentStateList = Array{ECAgentState, 1}
 
 type State
     substrate_dist::Array{Float64, 1}
@@ -229,7 +230,7 @@ type State
     end
 end
 
-typealias StateList Array{State, 1}
+const StateList = Array{State, 1}
 
 type Context
     input_dist::Array{Float64, 2}
