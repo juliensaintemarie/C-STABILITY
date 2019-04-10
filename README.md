@@ -2,7 +2,7 @@
 
 ## Software requirements
 
- - Install Julia 0.5.2  https://julialang.org/
+ - Install Julia 0.6.4  https://julialang.org/
 
 ## How to simulate?
 
