@@ -1,4 +1,4 @@
-# Model of organic matter transformation by microbial and extra-cellular activities according to accesibility
+# C-STABILITY: Carbon Substrate Targeted AccessiBILITY model 
 
 ## Software requirements
 
